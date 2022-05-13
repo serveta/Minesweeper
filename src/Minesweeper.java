@@ -1,10 +1,11 @@
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Minesweeper {
 
     String[][] map;
-    String[][] userMap;
+    String[][] minesMap;
     int row;
     int column;
     int mine;
@@ -19,30 +20,44 @@ public class Minesweeper {
         return (this.row * this.column) / 4;
     }
 
-    void createMap() {
-        int mineLocation;
+    void createMinesMap() {
         int mineCount = this.mine;
-        Random randomLocation = new Random();
 
-        for (int i = 0; i < this.map.length; i++) {
-            int newRow = 0;
-            for (int j = 0; j < this.map[i].length; j++) {
-                mineLocation = randomLocation.nextInt(100);
+        while (mineCount > 0) {
+            int row = (int) (Math.random() * this.row);
+            int column = (int) (Math.random() * this.column);
 
-                if (mineCount-- > 0 && mineLocation < 50){
-                    this.map[i][j] = this.mineMark;
-                } else {
-                    this.map[i][j] = this.boxMark;
-                }
+            if (!this.minesMap[row][column].equals(this.mineMark)) {
+                this.minesMap[row][column] = this.mineMark;
+                mineCount--;
+            }
+        }
+    }
+
+    void createMap() {
+        for (int i = 0; i < this.row; i++) {
+            for (int j = 0; j < this.column; j++) {
+                this.map[i][j] = this.boxMark;
+                this.minesMap[i][j] = this.boxMark;
             }
         }
 
+        createMinesMap();
+    }
+
+    void printMinesMap() {
+        for (int i = 0; i < this.row; i++) {
+            for (int j = 0; j < this.column; j++) {
+                System.out.print(this.minesMap[i][j]);
+            }
+            System.out.println();
+        }
     }
 
     void printMap() {
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map[i].length; j++) {
-                System.out.print(map[i][j]);
+        for (int i = 0; i < this.row; i++) {
+            for (int j = 0; j < this.column; j++) {
+                System.out.print(this.map[i][j]);
             }
             System.out.println();
         }
@@ -74,7 +89,7 @@ public class Minesweeper {
         }
 
         this.map = new String[this.row][this.column];
-        this.userMap = new String[this.row][this.column];
+        this.minesMap = new String[this.row][this.column];
         this.mine = mineRatio();
 
     }
@@ -86,5 +101,81 @@ public class Minesweeper {
         System.out.println("Mine Mark: " + this.mineMark);
         System.out.println("Box Mark : " + this.boxMark);
         System.out.println("*************");
+    }
+
+    void gameZone() {
+        Scanner input = new Scanner(System.in);
+        int openRow = 0;
+        int openCol = 0;
+        int winCounter = (this.row * this.column) - this.mine;
+        boolean isWin = false;
+        boolean isGameOver = false;
+
+        while (!isWin && !isGameOver) {
+            openRow = 0;
+            openCol = 0;
+            System.out.println("==================");
+            printMap();
+
+            while (openRow <= 0 || openRow > this.row) {
+                System.out.print("Row: ");
+                openRow = input.nextInt();
+                if (openRow <= 0 || openRow > this.row) {
+                    System.out.println("The row cannot be outside of 1-" + this.row);
+                }
+            }
+            while (openCol <= 0 || openCol > this.column) {
+                System.out.print("Column: ");
+                openCol = input.nextInt();
+                if (openCol <= 0 || openCol > this.column) {
+                    System.out.println("The column cannot be outside of 1-" + this.column);
+                }
+            }
+
+            openRow -= 1;
+            openCol -= 1;
+
+            if (this.minesMap[openRow][openCol].equals(this.mineMark)) {
+                isGameOver = true;
+                this.map[openRow][openCol] = this.mineMark;
+            } else if (this.minesMap[openRow][openCol].equals(this.boxMark) && this.map[openRow][openCol].equals(this.boxMark)) {
+                this.map[openRow][openCol] = minesControl(openRow, openCol);
+                winCounter--;
+            } else {
+                System.out.println("* (" + (++openRow) + "," + (++openCol) + ") is already open!");
+            }
+
+            if (winCounter == 0) {
+                isWin = true;
+                System.out.println("*** YOU WIN ***");
+                printMap();
+            } else if (isGameOver) {
+                System.out.println("*** GAME OVER ***");
+                printMap();
+            }
+        }
+    }
+
+    private String minesControl(int openRow, int openCol) {
+        int count = 0;
+        String countStr = "";
+
+        int startI = openRow == 0 ? 0 : openRow - 1;
+        int endI = openRow == (this.row - 1) ? (this.row - 1) : openRow + 1;
+        int startJ = openCol == 0 ? 0 : openCol - 1;
+        int endJ = openCol == (this.column - 1) ? (this.column - 1) : openCol + 1;
+
+        for (int i = startI; i <= endI; i++) {
+            for (int j = startJ; j <= endJ; j++) {
+                if (this.minesMap[i][j].equals(this.mineMark)) {
+                    count++;
+                }
+            }
+        }
+
+        countStr = Integer.toString(count);
+        countStr = " " + countStr + " ";
+
+        return countStr;
     }
 }

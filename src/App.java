@@ -14,13 +14,24 @@ public class App {
         howToPlay();
 
         Minesweeper minesweeper = new Minesweeper();
+
         minesweeper.startGame();
         minesweeper.printInfos();
 
         minesweeper.createMap();
-        minesweeper.printMap();
 
 
+        // It's the answer map...
+        /*
+            If you want to test the algorithm you can open these lines below.
+         */
+/*
+        System.out.println("===== |MINES MAP ======");
+        minesweeper.printMinesMap();
+        System.out.println("===== MINES MAP| ======");
+*/
+
+        minesweeper.gameZone();
 
     }
 }
